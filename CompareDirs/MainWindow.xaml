@@ -17,11 +17,41 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Label Grid.Column="0" Grid.Row="0">abbbb</Label>
+            <Label Grid.Column="0" Grid.Row="0">Select the first directory to compare -></Label>
             <Button Grid.Column="1" Grid.Row="0" Click="OpenChooser1Click">Browse</Button>
-            <Label Grid.Column="0" Grid.Row="1">abbbb</Label>
+            <Label Grid.Column="0" Grid.Row="1">Select the second directory to compare -></Label>
             <Button Grid.Column="1" Grid.Row="1" Click="OpenChooser2Click">Browse</Button>
         </Grid>
         <Button Grid.Column="0" Grid.Row="2" Click="CompareButtonClick">Compare</Button>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TreeView Name="tree1" Grid.Column="0" Grid.Row="0">
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="{x:Type TreeViewItem}">
+                        <Setter Property="IsExpanded" Value="True" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+                <TreeViewItem>
+                    <TreeViewItem.Header>
+						<StackPanel Orientation="Horizontal">
+							<Rectangle Stroke="Aqua" HorizontalAlignment="Left" Width="10px" Height="10px">
+							</Rectangle>
+                            <Label>Root</Label>
+						</StackPanel>
+                    </TreeViewItem.Header>
+                </TreeViewItem>
+            </TreeView>
+            <TreeView Name="tree2" Grid.Column="1" Grid.Row="0">
+                <TreeViewItem>
+                    Root
+                </TreeViewItem>
+            </TreeView>
+        </Grid>
     </StackPanel>
 </Window>

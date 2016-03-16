@@ -49,16 +49,20 @@ namespace CompareDirs {
 	class TreeItem : Traversable {
 		//members
 		private string fileName;
+		private Difference diff;
 		//constructors
 		internal TreeItem(string fileName) {
 			this.fileName = fileName;
+			diff = Difference.UNKNOWN;
 		}
 		//methods
 		public void Print(string tabs) {
 			Console.WriteLine(tabs + fileName);
 		}
 	}
+	enum Difference { UNKNOWN, SAME, NEW, MISSING }
 	interface Traversable {
 		void Print(string tabs);
+		bool Compare(Traversable t);
 	}
 }
