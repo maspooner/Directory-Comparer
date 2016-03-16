@@ -41,15 +41,22 @@ namespace CompareDirs {
 			DialogResult res = dialog.ShowDialog();
 			return res.Equals(System.Windows.Forms.DialogResult.OK) ? dialog.SelectedPath : null;
 		}
+		private void AddChildrenToVisualTree(System.Windows.Controls.TreeView visTree, TreeRoot tree) {
+
+		}
 		public void CompareButtonClick(object sender, RoutedEventArgs e) {
-			//try {
+			try {
 				if (path1 != null && path2 != null) {
 					TreeRoot root1 = new TreeRoot(path1);
+					TreeRoot copyRoot1 = new TreeRoot(root1);
 					root1.Print();
 					TreeRoot root2 = new TreeRoot(path2);
+					TreeRoot copyRoot2 = new TreeRoot(root2);
 					root2.Print();
+					root1.CompareWith(copyRoot2);
+					root2.CompareWith(copyRoot1);
 				}
-			//}
+			}
 			//catch(Exception x) {
 			//Console.WriteLine(x.Message);
 			//}
