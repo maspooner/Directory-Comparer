@@ -1,0 +1,14 @@
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\bin\Debug\CompareDirs.exe.config
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\bin\Debug\CompareDirs.exe
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\bin\Debug\CompareDirs.pdb
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.csprojResolveAssemblyReference.cache
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\MainWindow.g.cs
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\App.g.cs
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs_MarkupCompile.cache
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs_MarkupCompile.lref
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\MainWindow.baml
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.g.resources
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.Properties.Resources.resources
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.csproj.GenerateResource.Cache
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.exe
+c:\users\matt\documents\visual studio 2015\Projects\CompareDirs\CompareDirs\obj\Debug\CompareDirs.pdb
