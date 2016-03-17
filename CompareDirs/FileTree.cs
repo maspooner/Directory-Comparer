@@ -9,18 +9,20 @@ namespace CompareDirs {
 	class TreeRoot {
 		//members
 		private FileTree root;
-		private int depth;
+		//properties
+		public string Name { get { return root.Name; } }
+		public FileTree Root { get { return root; } }
 		//constructors
 		internal TreeRoot(string rootFile) : this(rootFile, int.MaxValue) { }
 		internal TreeRoot(string rootFile, int depth) {
 			root = new FileTree(Directory.GetFileSystemEntries(rootFile), new FileInfo(rootFile).Name, 0, depth);
 		}
 		internal TreeRoot(TreeRoot copyFrom) {
-			root = new FileTree(root);
+			root = new FileTree(copyFrom.root);
 		}
 		//methods
 		public void CompareWith(TreeRoot otherTree) {
-
+			root.CompareLevels(otherTree.root);
 		}
 		public void Print() {
 			root.Print("");
@@ -28,73 +30,122 @@ namespace CompareDirs {
 	}
 	class FileTree : Traversable{
 		//members
-		private string folderName;
-		private Traversable[] children;
+		private List<Traversable> children;
+		public List<Traversable> Children { get { return children; } }
 		//constructors
-		internal FileTree(string[] fileNames, string folderName, int currentDepth, int maxDepth) {
-			this.folderName = folderName;
-			children = new Traversable[fileNames.Length];
-			for(int i = 0; i < children.Length; i++) {
+		internal FileTree(string[] fileNames, string folderName, int currentDepth, int maxDepth) : base(folderName) {
+			children = new List<Traversable>();
+			for(int i = 0; i < fileNames.Length; i++) {
 				FileInfo fi = new FileInfo(fileNames[i]);
-				if(currentDepth < maxDepth || fi.Attributes.HasFlag(FileAttributes.Directory)) {
-					children[i] = new FileTree(Directory.GetFileSystemEntries(fileNames[i]), fi.Name, currentDepth + 1, maxDepth);
+				if(currentDepth < maxDepth && fi.Attributes.HasFlag(FileAttributes.Directory)) {
+					children.Add(new FileTree(Directory.GetFileSystemEntries(fileNames[i]), fi.Name, currentDepth + 1, maxDepth));
 				}
 				else {
-					children[i] = new TreeItem(fi.Name);
+					children.Add(new TreeItem(fi.Name));
 				}
 			}
 		}
-		internal FileTree(FileTree copyFrom) {
-			this.folderName = copyFrom.folderName;
-			this.children = new Traversable[copyFrom.children.Length];
-			for(int i = 0; i < this.children.Length; i++) {
+		internal FileTree(FileTree copyFrom) : base(copyFrom.Name){
+			this.children = new List<Traversable>();
+			for(int i = 0; i < copyFrom.children.Count; i++) {
 				FileTree fi = copyFrom.children[i] as FileTree;
 				if(fi == null) {
-					children[i] = new TreeItem(copyFrom.children[i] as TreeItem);
+					children.Add(new TreeItem(copyFrom.children[i] as TreeItem));
 				}
 				else {
-					children[i] = new FileTree(fi);
+					children.Add(new FileTree(fi));
 				}
 			}
 		}
 		//methods
-		public void Print(string tabs) {
-			Console.WriteLine(tabs + folderName);
+		public void CompareLevels(FileTree otherRoot) {
+			foreach(Traversable t in children) {
+				if(t is TreeItem) {
+					TreeItem ti = t as TreeItem;
+					ti.Change = FindMatch(t, otherRoot) != null ? Difference.SAME : Difference.NEW;
+				}
+				else {
+					FileTree fi = t as FileTree;
+					Traversable match = FindMatch(t, otherRoot);
+					fi.Change = match != null ? Difference.SAME : Difference.NEW;
+					if (fi.Change.Equals(Difference.SAME)) {
+						fi.CompareLevels(match as FileTree);
+					}
+					else {
+						fi.SetChildrenAs(Difference.NEW);
+					}
+				}
+			}
+			foreach(Traversable t in otherRoot.children) {
+				if (t.Change.Equals(Difference.UNKNOWN)) {
+					if(t is TreeItem) {
+						TreeItem ti = new TreeItem(t as TreeItem);
+						ti.Change = Difference.MISSING;
+						this.children.Add(ti);
+					}
+					else {
+						FileTree ft = new FileTree(t as FileTree);
+						ft.SetChildrenAs(Difference.MISSING);
+						this.children.Add(ft);
+					}
+				}
+			}
+		}
+		private void SetChildrenAs(Difference d) {
+			foreach (Traversable t in children) {
+				t.Change = d;
+				if(t is FileTree) {
+					(t as FileTree).SetChildrenAs(d);
+				}
+			}
+		}
+		private Traversable FindMatch(Traversable target, FileTree other) {
+			Traversable found = null;
+			for(int i = 0; i < other.children.Count && found == null; i++) {
+				Traversable t = other.children[i];
+				if (t.Compare(target)) {
+					found = t;
+				}
+			}
+			return found;
+		}
+		public override void Print(string tabs) {
+			Console.WriteLine(tabs + Name + " " + Change);
 			tabs += "\t";
 			foreach (Traversable t in children) {
 				t.Print(tabs);
 			}
 		}
-		public bool Compare(Traversable t) {
-			FileTree ft = t as FileTree;
-			return ft != null && ft.folderName.Equals(this.folderName);
-		}
 	}
 	class TreeItem : Traversable {
 		//members
-		private string fileName;
-		private Difference diff;
 		//constructors
-		internal TreeItem(string fileName) {
-			this.fileName = fileName;
-			diff = Difference.UNKNOWN;
+		internal TreeItem(string fileName) : base(fileName) {
 		}
-		internal TreeItem(TreeItem copyFrom) {
-			this.fileName = copyFrom.fileName;
-			diff = Difference.UNKNOWN;
+		internal TreeItem(TreeItem copyFrom) : base(copyFrom.Name){
 		}
 		//methods
-		public void Print(string tabs) {
-			Console.WriteLine(tabs + fileName);
-		}
-		public bool Compare(Traversable t) {
-			TreeItem ti = t as TreeItem;
-			return ti != null && ti.fileName.Equals(this.fileName);
+		public override void Print(string tabs) {
+			Console.WriteLine(tabs + Name + " " + Change);
 		}
 	}
 	enum Difference { UNKNOWN, SAME, NEW, MISSING }
-	interface Traversable {
-		void Print(string tabs);
-		bool Compare(Traversable t);
+	abstract class Traversable {
+		//members
+		private string name;
+		private Difference diff;
+		//properties
+		public string Name { get { return name; } }
+		public Difference Change { get { return diff; } set { diff = value; } }
+		//constructors
+		internal Traversable(string name) {
+			this.name = name;
+			diff = Difference.UNKNOWN;
+		}
+		//methods
+		public abstract void Print(string tabs);
+		public bool Compare(Traversable t) {
+			return this.name.Equals(t.name);
+		}
 	}
 }
