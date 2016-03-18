@@ -60,14 +60,13 @@ namespace CompareDirs {
 		//methods
 		public void CompareLevels(FileTree otherRoot) {
 			foreach(Traversable t in children) {
-				if(t is TreeItem) {
-					TreeItem ti = t as TreeItem;
-					ti.Change = FindMatch(t, otherRoot) != null ? Difference.SAME : Difference.NEW;
+				Traversable match = FindMatch(t, otherRoot);
+				t.Change = match != null ? Difference.SAME : Difference.NEW;
+				if (match != null) {
+					match.Change = Difference.SAME;
 				}
-				else {
+				if (t is FileTree) {
 					FileTree fi = t as FileTree;
-					Traversable match = FindMatch(t, otherRoot);
-					fi.Change = match != null ? Difference.SAME : Difference.NEW;
 					if (fi.Change.Equals(Difference.SAME)) {
 						fi.CompareLevels(match as FileTree);
 					}
@@ -85,11 +84,30 @@ namespace CompareDirs {
 					}
 					else {
 						FileTree ft = new FileTree(t as FileTree);
+						ft.Change = Difference.MISSING;
 						ft.SetChildrenAs(Difference.MISSING);
 						this.children.Add(ft);
 					}
 				}
 			}
+			this.SortChildren();
+		}
+		private void SortChildren() {
+			children.Sort(delegate (Traversable t1, Traversable t2) {
+				bool isTree1 = t1 is FileTree;
+				bool isTree2 = t2 is FileTree;
+				if(isTree1 == isTree2) {
+					int i = t1.Name.CompareTo(t2.Name);
+					if (i != 0)
+						return i;
+				}
+				if (isTree1) {
+					return -1;
+				}
+				else {
+					return 1;
+				}
+			});
 		}
 		private void SetChildrenAs(Difference d) {
 			foreach (Traversable t in children) {

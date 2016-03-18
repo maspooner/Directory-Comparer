@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:CompareDirs"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <StackPanel>
-        <Grid>
+    <DockPanel>
+        <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -22,29 +22,33 @@
 			<Label Name="dirLabel2" Grid.Column="0" Grid.Row="1">Select the second directory to compare -></Label>
             <Button Grid.Column="1" Grid.Row="1" Click="OpenChooser2Click">Browse</Button>
         </Grid>
-        <Button Grid.Column="0" Grid.Row="2" Click="CompareButtonClick">Compare</Button>
-        <Grid>
+        <Button Grid.Column="0" Grid.Row="2" Click="CompareButtonClick" DockPanel.Dock="Top">Compare</Button>
+        <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TreeView Name="treeView1" Grid.Column="0" Grid.Row="0">
-				<TreeView.ItemContainerStyle>
-					<Style TargetType="{x:Type TreeViewItem}">
-						<Setter Property="IsExpanded" Value="True" />
-					</Style>
-				</TreeView.ItemContainerStyle>
-			</TreeView>
-            <TreeView Name="treeView2" Grid.Column="1" Grid.Row="0">
-				<TreeView.ItemContainerStyle>
-					<Style TargetType="{x:Type TreeViewItem}">
-						<Setter Property="IsExpanded" Value="True" />
-					</Style>
-				</TreeView.ItemContainerStyle>
-			</TreeView>
-        </Grid>
-    </StackPanel>
+			<ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+				<TreeView Name="treeView1">
+					<TreeView.ItemContainerStyle>
+						<Style TargetType="{x:Type TreeViewItem}">
+							<Setter Property="IsExpanded" Value="True" />
+						</Style>
+					</TreeView.ItemContainerStyle>
+				</TreeView>
+			</ScrollViewer>
+			<ScrollViewer Grid.Column="1" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+				<TreeView Name="treeView2">
+					<TreeView.ItemContainerStyle>
+						<Style TargetType="{x:Type TreeViewItem}">
+							<Setter Property="IsExpanded" Value="True" />
+						</Style>
+					</TreeView.ItemContainerStyle>
+				</TreeView>
+			</ScrollViewer>
+		</Grid>
+    </DockPanel>
 </Window>

@@ -23,10 +23,13 @@ namespace CompareDirs {
 	public partial class MainWindow : Window {
 		//members
 		private string path1, path2;
+		private FolderBrowserDialog chooserDialog;
 		//constructors
 		public MainWindow() {
 			InitializeComponent();
 			path1 = path2 = null;
+			chooserDialog = new FolderBrowserDialog();
+			chooserDialog.ShowNewFolderButton = false;
 		}
 		//methods
 		public void OpenChooser1Click(object sender, RoutedEventArgs e) {
@@ -40,12 +43,11 @@ namespace CompareDirs {
 			dirLabel2.Content = path2 == null ? "Select the second directory to compare ->" : path2;
         }
 		public string OpenDialog() {
-			FolderBrowserDialog dialog = new FolderBrowserDialog();
-			dialog.ShowNewFolderButton = false;
-			DialogResult res = dialog.ShowDialog();
-			return res.Equals(System.Windows.Forms.DialogResult.OK) ? dialog.SelectedPath : null;
+			DialogResult res = chooserDialog.ShowDialog();
+			return res.Equals(System.Windows.Forms.DialogResult.OK) ? chooserDialog.SelectedPath : null;
 		}
 		private void ConvertToVisualTree(System.Windows.Controls.TreeView visTree, TreeRoot root) {
+			visTree.Items.Clear();
 			TreeViewItem visRoot = CreateTreeViewItem(Difference.UNKNOWN, root.Name);
 			visTree.Items.Add(visRoot);
 			foreach(Traversable t in root.Root.Children) {
@@ -70,35 +72,39 @@ namespace CompareDirs {
 			r.Height = pixSize;
 			r.Width = pixSize;
 			switch (diff) {
-				case Difference.SAME: r.Stroke = Brushes.Beige; break;
-				case Difference.NEW: r.Stroke = Brushes.Green; break;
-				case Difference.MISSING: r.Stroke = Brushes.Black; break;
-				default: r.Stroke = Brushes.White; break;
+				case Difference.SAME: r.Fill = Brushes.Beige; break;
+				case Difference.NEW: r.Fill = Brushes.Green; break;
+				case Difference.MISSING: r.Fill = Brushes.Black; break;
+				default: r.Fill = Brushes.White; break;
 			}
-			r.Stroke = Brushes.Aqua;
 			p.Children.Add(r);
 
 			System.Windows.Controls.Label l = new System.Windows.Controls.Label();
 			l.Content = text;
 			p.Children.Add(l);
 			TreeViewItem tvi = new TreeViewItem();
-			tvi.Header = tvi;
+			tvi.Header = p;
 			return tvi;
 		}
 		public void CompareButtonClick(object sender, RoutedEventArgs e) {
-			if (path1 != null && path2 != null) {
-				TreeRoot root1 = new TreeRoot(path1);
-				TreeRoot copyRoot1 = new TreeRoot(root1);
-				root1.Print();
-				TreeRoot root2 = new TreeRoot(path2);
-				TreeRoot copyRoot2 = new TreeRoot(root2);
-				root2.Print();
-				root1.CompareWith(copyRoot2);
-				root2.CompareWith(copyRoot1);
-				root1.Print();
-				root2.Print();
-				ConvertToVisualTree(treeView1, root1);
-				ConvertToVisualTree(treeView2, root2);
+			try {
+				if (path1 != null && path2 != null) {
+					TreeRoot root1 = new TreeRoot(path1);
+					TreeRoot copyRoot1 = new TreeRoot(root1);
+					root1.Print();
+					TreeRoot root2 = new TreeRoot(path2);
+					TreeRoot copyRoot2 = new TreeRoot(root2);
+					root2.Print();
+					root1.CompareWith(copyRoot2);
+					root2.CompareWith(copyRoot1);
+					root1.Print();
+					root2.Print();
+					ConvertToVisualTree(treeView1, root1);
+					ConvertToVisualTree(treeView2, root2);
+				}
+			}
+			catch(Exception x) {
+				System.Windows.MessageBox.Show(x.Message, "Error");
 			}
 		}
 	}
