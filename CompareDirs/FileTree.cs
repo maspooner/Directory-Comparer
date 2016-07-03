@@ -80,11 +80,13 @@ namespace CompareDirs {
 					if(t is TreeItem) {
 						TreeItem ti = new TreeItem(t as TreeItem);
 						ti.Change = Difference.MISSING;
+						Change = Difference.MISSING;
 						this.children.Add(ti);
 					}
 					else {
 						FileTree ft = new FileTree(t as FileTree);
 						ft.Change = Difference.MISSING;
+						Change = Difference.MISSING;
 						ft.SetChildrenAs(Difference.MISSING);
 						this.children.Add(ft);
 					}
