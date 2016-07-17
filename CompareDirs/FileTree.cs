@@ -11,6 +11,7 @@ namespace CompareDirs {
 		private FileTree root;
 		//properties
 		public string Name { get { return root.Name; } }
+		public Difference Change { get { return root.Change; } }
 		public FileTree Root { get { return root; } }
 		//constructors
 		internal TreeRoot(string rootFile) : this(rootFile, int.MaxValue) { }
@@ -58,40 +59,64 @@ namespace CompareDirs {
 			}
 		}
 		//methods
+		private Difference FindParentDifference(Difference currDiff, Difference childDiff) {
+			if (currDiff.Equals(Difference.UNKNOWN) || currDiff.Equals(Difference.SAME))
+				return childDiff;
+			else if (!currDiff.Equals(childDiff))
+				return Difference.BOTH;
+			return currDiff;
+		}
 		public void CompareLevels(FileTree otherRoot) {
+			Difference currDiff1 = Difference.UNKNOWN, currDiff2 = Difference.UNKNOWN;
 			foreach(Traversable t in children) {
+				//find a match in the other tree at this level
 				Traversable match = FindMatch(t, otherRoot);
-				t.Change = match != null ? Difference.SAME : Difference.NEW;
+				//if a match was found
 				if (match != null) {
-					match.Change = Difference.SAME;
+					//the children are the same
+					t.Change = Difference.SAME;
+                    match.Change = Difference.SAME;
+					//if both children are file trees
+					if(t is FileTree) {
+						//compare them, setting their Change in the process
+						(t as FileTree).CompareLevels(match as FileTree);
+					}
+					//find the difference the parent should have based on new children difference data
+					currDiff1 = FindParentDifference(currDiff1, t.Change);
+					currDiff2 = FindParentDifference(currDiff2, match.Change);
 				}
-				if (t is FileTree) {
-					FileTree fi = t as FileTree;
-					if (fi.Change.Equals(Difference.SAME)) {
-						fi.CompareLevels(match as FileTree);
+				else {
+					//this element is new in the original tree
+					t.Change = Difference.NEW;
+					//if it's a file tree, all children are also new
+					if (t is FileTree) {
+						(t as FileTree).SetChildrenAs(Difference.NEW);
 					}
-					else {
-						fi.SetChildrenAs(Difference.NEW);
-					}
+					//find the difference the parent should have based on NEW children data
+					currDiff1 = FindParentDifference(currDiff1, Difference.NEW);
 				}
 			}
 			foreach(Traversable t in otherRoot.children) {
+				//element was not hit in other loop and is new in the other tree
 				if (t.Change.Equals(Difference.UNKNOWN)) {
+					Traversable newT;
 					if(t is TreeItem) {
-						TreeItem ti = new TreeItem(t as TreeItem);
-						ti.Change = Difference.MISSING;
-						Change = Difference.MISSING;
-						this.children.Add(ti);
+						//create a copy to attach to the original tree
+						newT = new TreeItem(t as TreeItem);
 					}
 					else {
-						FileTree ft = new FileTree(t as FileTree);
-						ft.Change = Difference.MISSING;
-						Change = Difference.MISSING;
-						ft.SetChildrenAs(Difference.MISSING);
-						this.children.Add(ft);
+						newT = new FileTree(t as FileTree);
+						(newT as FileTree).SetChildrenAs(Difference.MISSING);
 					}
+					newT.Change = Difference.MISSING;
+					//find the difference the parent should have based on MISSING children data
+					currDiff1 = FindParentDifference(currDiff1, Difference.MISSING);
+					//add the new node
+					this.children.Add(newT);
 				}
 			}
+			this.Change = currDiff1;
+			otherRoot.Change = currDiff2;
 			this.SortChildren();
 		}
 		private void SortChildren() {
@@ -149,7 +174,7 @@ namespace CompareDirs {
 			Console.WriteLine(tabs + Name + " " + Change);
 		}
 	}
-	enum Difference { UNKNOWN, SAME, NEW, MISSING }
+	enum Difference { UNKNOWN, SAME, NEW, MISSING, BOTH }
 	abstract class Traversable {
 		//members
 		private string name;
@@ -165,7 +190,7 @@ namespace CompareDirs {
 		//methods
 		public abstract void Print(string tabs);
 		public bool Compare(Traversable t) {
-			return this.name.Equals(t.name);
+			return this.GetType().Equals(t.GetType()) && this.name.Equals(t.name);
 		}
 	}
 }

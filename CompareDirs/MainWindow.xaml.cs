@@ -48,7 +48,7 @@ namespace CompareDirs {
 		}
 		private void ConvertToVisualTree(System.Windows.Controls.TreeView visTree, TreeRoot root) {
 			visTree.Items.Clear();
-			TreeViewItem visRoot = CreateTreeViewItem(Difference.UNKNOWN, root.Name);
+			TreeViewItem visRoot = CreateTreeViewItem(root.Change, root.Name);
 			visTree.Items.Add(visRoot);
 			foreach(Traversable t in root.Root.Children) {
 				AddChildrenToVisualTree(visRoot, t);
@@ -72,9 +72,10 @@ namespace CompareDirs {
 			r.Height = pixSize;
 			r.Width = pixSize;
 			switch (diff) {
-				case Difference.SAME: r.Fill = Brushes.Beige; break;
+				case Difference.SAME: r.Fill = Brushes.Bisque; break;
 				case Difference.NEW: r.Fill = Brushes.Green; break;
-				case Difference.MISSING: r.Fill = Brushes.Black; break;
+				case Difference.MISSING: r.Fill = Brushes.Red; break;
+				case Difference.BOTH: r.Fill = Brushes.DodgerBlue; break;
 				default: r.Fill = Brushes.White; break;
 			}
 			p.Children.Add(r);
