@@ -1,29 +1,22 @@
 # README #
 
-This README would normally document whatever steps are necessary to get your application up and running.
+This project keeps track of lists with user-set properties.
 
-### What is this repository for? ###
+### Summary Information ###
+Version X
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+
+* * *
+
+### Project Members ###
+- Matthew Spooner
 
 ### How do I get set up? ###
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+Run the latest EXE in the bin folder.
+The code requires no extra setup.
 
-### Contribution guidelines ###
-
-* Writing tests
-* Code review
-* Other guidelines
-
-### Who do I talk to? ###
+### Contact Information ###
 
 * Repo owner or admin
 * Other community or team contact
