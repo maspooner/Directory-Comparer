@@ -1,10 +1,11 @@
 # README #
 
-This project keeps track of lists with user-set properties.
+This project lists the difference between two directories.
+Only names of files are compared, not content.
 
 ### Summary Information ###
 Version X
-
+Date Created:
 
 * * *
 
@@ -17,6 +18,5 @@ Run the latest EXE in the bin folder.
 The code requires no extra setup.
 
 ### Contact Information ###
-
-* Repo owner or admin
-* Other community or team contact
+Questions/Feedback?
+Email: spoonerm12@gmail.com
