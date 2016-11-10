@@ -6,6 +6,130 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CompareDirs {
+	enum ChangeState { SAME, ADDED, DELETED, MIXED }
+	interface INodeVisitor {
+		Node accept(DirNode n1, DirNode n2);
+		Node accept(FileNode n1, DirNode n2);
+		Node accept(DirNode n1, FileNode n2);
+		Node accept(FileNode n1, FileNode n2);
+	}
+	class NodeVisitor : INodeVisitor {
+		public Node accept(FileNode n1, FileNode n2) {
+			if (n1.SharesName(n2)) {
+				return new FileNode(n1.Name);
+			}
+			else {
+				return new DirNode(new FileNode(n1.Name, ChangeState.DELETED),
+								   new FileNode(n2.Name, ChangeState.ADDED));
+			}
+		}
+
+		public Node accept(DirNode n1, FileNode n2) {
+			n1.MarkAll(ChangeState.DELETED);
+			int match = n1.ChildMatching(n2);
+			if(match != -1) {
+				n1[match].State = ChangeState.SAME;
+			}
+			else {
+				n2.State = ChangeState.ADDED;
+				n1.Append(n2);
+			}
+			return n1;
+		}
+
+		public Node accept(FileNode n1, DirNode n2) {
+			throw new NotImplementedException();
+		}
+
+		public Node accept(DirNode n1, DirNode n2) {
+			
+		}
+	}
+	class TreeComparer {
+		//properties
+		internal Node BaseTree { get; private set; }
+		internal Node OtherTree { get; private set; }
+		//constructors
+		internal TreeComparer(Node baseTree, Node otherTree) {
+			BaseTree = baseTree;
+			OtherTree = otherTree;
+		}
+		internal Node GenerateResult() {
+			foreach(Node b in BaseTree) {
+				if(OtherTree.)
+			}
+		}
+	}
+	abstract class Node {
+		//properties
+		internal string Name { get; private set; }
+		internal ChangeState State { get; set; }
+		//constructors
+		internal Node(string name, ChangeState state) {
+			Name = name;
+			State = state;
+		}
+		internal Node(string name) : this(name, ChangeState.SAME) { }
+		//methods
+		/// <summary>
+		/// Do this Node and another share the same name?
+		/// </summary>
+		/// <param name="other">The node to compare to</param>
+		/// <returns></returns>
+		internal bool SharesName(Node other) {
+			return Name.Equals(other.Name);
+		}
+		internal abstract Node Compare(Node other);
+		internal abstract bool ContainsState(ChangeState state);
+	}
+	class FileNode : Node {
+		//constructors
+		internal FileNode(string name) : base(name) { }
+		internal FileNode(string name, ChangeState state) : base(name, state) { }
+		//methods
+		internal override Node Compare(Node other) {
+			throw new NotImplementedException();
+		}
+
+		internal override bool ContainsState(ChangeState state) {
+			return State.Equals(state);
+		}
+	}
+	class DirNode : Node {
+		//properties
+		internal List<Node> Children { get; private set; }
+		internal Node this[int i] { get { return Children[i]; } }
+		//constructors
+		internal DirNode(string name) : base(name) {
+			Children = new List<Node>();
+		}
+		internal DirNode(params Node[] children) : this("") {
+			Children.AddRange(children);
+		}
+		internal override Node Compare(Node other) {
+			throw new NotImplementedException();
+		}
+		internal void MarkAll(ChangeState state) {
+			foreach(Node c in Children) {
+				c.State = state;
+			}
+		}
+		internal void Append(Node n) {
+			Children.Add(n);
+		}
+		internal int ChildMatching(Node other) {
+
+		}
+
+		internal override bool ContainsState(ChangeState state) {
+			foreach(Node n in Children) {
+				if (n.ContainsState(state))
+					return true;
+			}
+			return false;
+		}
+	}
+
 	class TreeRoot {
 		//members
 		private FileTree root;
