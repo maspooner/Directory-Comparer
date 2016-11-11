@@ -6,127 +6,175 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CompareDirs {
-	enum ChangeState { SAME, ADDED, DELETED, MIXED }
-	interface INodeVisitor {
-		Node accept(DirNode n1, DirNode n2);
-		Node accept(FileNode n1, DirNode n2);
-		Node accept(DirNode n1, FileNode n2);
-		Node accept(FileNode n1, FileNode n2);
-	}
-	class NodeVisitor : INodeVisitor {
-		public Node accept(FileNode n1, FileNode n2) {
-			if (n1.SharesName(n2)) {
-				return new FileNode(n1.Name);
-			}
-			else {
-				return new DirNode(new FileNode(n1.Name, ChangeState.DELETED),
-								   new FileNode(n2.Name, ChangeState.ADDED));
-			}
-		}
-
-		public Node accept(DirNode n1, FileNode n2) {
-			n1.MarkAll(ChangeState.DELETED);
-			int match = n1.ChildMatching(n2);
-			if(match != -1) {
-				n1[match].State = ChangeState.SAME;
-			}
-			else {
-				n2.State = ChangeState.ADDED;
-				n1.Append(n2);
-			}
-			return n1;
-		}
-
-		public Node accept(FileNode n1, DirNode n2) {
-			throw new NotImplementedException();
-		}
-
-		public Node accept(DirNode n1, DirNode n2) {
-			
-		}
-	}
-	class TreeComparer {
+	public enum ChangeState { SAME, ADDED, DELETED, MIXED }
+	public abstract class Node {
 		//properties
-		internal Node BaseTree { get; private set; }
-		internal Node OtherTree { get; private set; }
+		public string Name { get; private set; }
+		public ChangeState State { get; set; }
 		//constructors
-		internal TreeComparer(Node baseTree, Node otherTree) {
-			BaseTree = baseTree;
-			OtherTree = otherTree;
-		}
-		internal Node GenerateResult() {
-			foreach(Node b in BaseTree) {
-				if(OtherTree.)
-			}
-		}
-	}
-	abstract class Node {
-		//properties
-		internal string Name { get; private set; }
-		internal ChangeState State { get; set; }
-		//constructors
-		internal Node(string name, ChangeState state) {
+		public Node(string name, ChangeState state) {
 			Name = name;
 			State = state;
 		}
-		internal Node(string name) : this(name, ChangeState.SAME) { }
 		//methods
 		/// <summary>
-		/// Do this Node and another share the same name?
+		/// Do this Node and another share the same name and type?
 		/// </summary>
 		/// <param name="other">The node to compare to</param>
 		/// <returns></returns>
-		internal bool SharesName(Node other) {
-			return Name.Equals(other.Name);
+		public bool SharesName(Node other) {
+			return Name.Equals(other.Name) && other.GetType().Equals(this.GetType());
 		}
-		internal abstract Node Compare(Node other);
-		internal abstract bool ContainsState(ChangeState state);
+		public int CompareTo(Node n) {
+			return (n is BranchNode) ? CompareTo(n as BranchNode) : CompareTo(n as LeafNode);
+		}
+		public override string ToString() {
+			return Print("");
+		}
+		public abstract Node FindNode(Node other);
+		public abstract Node MergeToResult(Node other);
+		public abstract int CompareTo(LeafNode other);
+		public abstract int CompareTo(BranchNode other);
+		public abstract void Insert(Node other);
+		public abstract bool ContainsState(ChangeState state);
+		public abstract void MarkAs(ChangeState state);
+		public abstract string Print(string tabs);
+		public abstract bool EqualToNode(Node other);
 	}
-	class FileNode : Node {
+	public class LeafNode : Node {
 		//constructors
-		internal FileNode(string name) : base(name) { }
-		internal FileNode(string name, ChangeState state) : base(name, state) { }
+		public LeafNode(string name, ChangeState state) : base(name, state) { }
 		//methods
-		internal override Node Compare(Node other) {
-			throw new NotImplementedException();
+		public override Node MergeToResult(Node other) {
+			other.State = ChangeState.SAME;
+			return other;
 		}
-
-		internal override bool ContainsState(ChangeState state) {
+		public override bool ContainsState(ChangeState state) {
 			return State.Equals(state);
 		}
+		/// <summary>
+		/// If the other Node is equal to this name, the Node found is this Node
+		/// otherwise, it's not found
+		/// </summary>
+		/// <returns></returns>
+		public override Node FindNode(Node other) {
+			return other.SharesName(this) ? this : null;
+		}
+		public override void Insert(Node other) {
+			
+		}
+		public override void MarkAs(ChangeState state) {
+			State = state;
+		}
+		public override int CompareTo(BranchNode other) {
+			return 1;
+		}
+		public override int CompareTo(LeafNode other) {
+			return Name.CompareTo(other.Name);
+		}
+		public override string Print(string tabs) {
+			return tabs + Name + " " + State;
+		}
+
+		public override bool EqualToNode(Node other) {
+			return SharesName(other);
+		}
 	}
-	class DirNode : Node {
+	public class BranchNode : Node {
+		//members
+		private int iter;
 		//properties
-		internal List<Node> Children { get; private set; }
-		internal Node this[int i] { get { return Children[i]; } }
+		public List<Node> Children { get; private set; }
+		public Node this[int i] { get { return Children[i]; } }
 		//constructors
-		internal DirNode(string name) : base(name) {
+		public BranchNode(string name, ChangeState state) : base(name, state) {
 			Children = new List<Node>();
+			iter = 0;
 		}
-		internal DirNode(params Node[] children) : this("") {
-			Children.AddRange(children);
+		public BranchNode(string name, params Node[] nodes) : this(name, ChangeState.SAME) {
+			Children.AddRange(nodes);
 		}
-		internal override Node Compare(Node other) {
-			throw new NotImplementedException();
-		}
-		internal void MarkAll(ChangeState state) {
-			foreach(Node c in Children) {
-				c.State = state;
-			}
-		}
-		internal void Append(Node n) {
+		public void Append(Node n) {
 			Children.Add(n);
 		}
-		internal int ChildMatching(Node other) {
-
-		}
-
-		internal override bool ContainsState(ChangeState state) {
+		public override bool ContainsState(ChangeState state) {
 			foreach(Node n in Children) {
 				if (n.ContainsState(state))
 					return true;
 			}
 			return false;
+		}
+
+		public override Node FindNode(Node other) {
+			while(iter < Children.Count) {
+				int comp = Children[iter].CompareTo(other);
+                if (comp == 0) {
+					return Children[iter++];
+				}
+				else if(comp < 0) {
+					return null;
+				}
+				else {
+					iter++;
+				}
+			}
+			return null;
+		}
+
+		public override Node MergeToResult(Node other) {
+			foreach(Node c in Children) {
+				Node otherMatch = other.FindNode(c);
+				if (otherMatch != null) {
+					other.State = ChangeState.SAME;
+					c.MergeToResult(otherMatch);
+				}
+				else {
+					other.Insert(c);
+				}
+			}
+			return other;
+		}
+		public override void Insert(Node other) {
+			other.MarkAs(ChangeState.DELETED);
+			Children.Insert(iter++, other);
+		}
+		public override void MarkAs(ChangeState state) {
+			State = state;
+			foreach(Node c in Children) {
+				c.MarkAs(state);
+			}
+		}
+
+		public override int CompareTo(LeafNode other) {
+			return -1;
+		}
+
+		public override int CompareTo(BranchNode other) {
+			return Name.CompareTo(other.Name);
+		}
+		public override string Print(string tabs) {
+			string soFar = tabs + Name + " " + State;
+			tabs += "\t";
+			foreach (Node c in Children) {
+				soFar += "\n" + c.Print(tabs);
+			}
+			return soFar;
+		}
+
+		public override bool EqualToNode(Node other) {
+			if(other is BranchNode) {
+				BranchNode bOther = other as BranchNode;
+				if (bOther.Children.Count != Children.Count) return false;
+				for(int i = 0; i < bOther.Children.Count; i++) {
+					if (!Children[i].EqualToNode(bOther.Children[i])) {
+						return false;
+					}
+				}
+			}
+			else {
+				return other.SharesName(this);
+            }
+			return true;
 		}
 	}
 
@@ -138,11 +186,11 @@ namespace CompareDirs {
 		public Difference Change { get { return root.Change; } }
 		public FileTree Root { get { return root; } }
 		//constructors
-		internal TreeRoot(string rootFile) : this(rootFile, int.MaxValue) { }
-		internal TreeRoot(string rootFile, int depth) {
+		public TreeRoot(string rootFile) : this(rootFile, int.MaxValue) { }
+		public TreeRoot(string rootFile, int depth) {
 			root = new FileTree(Directory.GetFileSystemEntries(rootFile), new FileInfo(rootFile).Name, 0, depth);
 		}
-		internal TreeRoot(TreeRoot copyFrom) {
+		public TreeRoot(TreeRoot copyFrom) {
 			root = new FileTree(copyFrom.root);
 		}
 		//methods
@@ -158,7 +206,7 @@ namespace CompareDirs {
 		private List<Traversable> children;
 		public List<Traversable> Children { get { return children; } }
 		//constructors
-		internal FileTree(string[] fileNames, string folderName, int currentDepth, int maxDepth) : base(folderName) {
+		public FileTree(string[] fileNames, string folderName, int currentDepth, int maxDepth) : base(folderName) {
 			children = new List<Traversable>();
 			for(int i = 0; i < fileNames.Length; i++) {
 				FileInfo fi = new FileInfo(fileNames[i]);
@@ -170,7 +218,7 @@ namespace CompareDirs {
 				}
 			}
 		}
-		internal FileTree(FileTree copyFrom) : base(copyFrom.Name){
+		public FileTree(FileTree copyFrom) : base(copyFrom.Name){
 			this.children = new List<Traversable>();
 			for(int i = 0; i < copyFrom.children.Count; i++) {
 				FileTree fi = copyFrom.children[i] as FileTree;
@@ -289,9 +337,9 @@ namespace CompareDirs {
 	class TreeItem : Traversable {
 		//members
 		//constructors
-		internal TreeItem(string fileName) : base(fileName) {
+		public TreeItem(string fileName) : base(fileName) {
 		}
-		internal TreeItem(TreeItem copyFrom) : base(copyFrom.Name){
+		public TreeItem(TreeItem copyFrom) : base(copyFrom.Name){
 		}
 		//methods
 		public override void Print(string tabs) {
@@ -307,7 +355,7 @@ namespace CompareDirs {
 		public string Name { get { return name; } }
 		public Difference Change { get { return diff; } set { diff = value; } }
 		//constructors
-		internal Traversable(string name) {
+		public Traversable(string name) {
 			this.name = name;
 			diff = Difference.UNKNOWN;
 		}
