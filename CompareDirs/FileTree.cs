@@ -29,40 +29,34 @@ namespace CompareDirs {
 			return (n is BranchNode) ? CompareTo(n as BranchNode) : CompareTo(n as LeafNode);
 		}
 		public override string ToString() {
-			return Print("");
+			return ToString(true);
 		}
-		public abstract Node FindNode(Node other);
-		public abstract Node MergeToResult(Node other);
+		public string ToString(bool showState) {
+			return Print("", showState);
+		}
+		public ChangeState MeshStates(ChangeState oldState, ChangeState newState) {
+			if (oldState.Equals(ChangeState.MIXED) || newState.Equals(ChangeState.MIXED))
+				return ChangeState.MIXED;
+			if (oldState.Equals(newState)) return newState;
+			if (oldState.Equals(ChangeState.SAME)) return newState;
+			if (newState.Equals(ChangeState.SAME)) return oldState;
+			return ChangeState.MIXED;
+		}
+		public string PrintTitle(string tabs, bool showState) {
+			return tabs + Name +  (showState ? " (" + State.ToString() + ")" : "");
+		}
+		public abstract Node MergeTrees(Node second);
+		public abstract Node CreateCopy(ChangeState state);
 		public abstract int CompareTo(LeafNode other);
 		public abstract int CompareTo(BranchNode other);
-		public abstract void Insert(Node other);
-		public abstract bool ContainsState(ChangeState state);
 		public abstract void MarkAs(ChangeState state);
-		public abstract string Print(string tabs);
+		public abstract string Print(string tabs, bool showState);
 		public abstract bool EqualToNode(Node other);
 	}
 	public class LeafNode : Node {
 		//constructors
 		public LeafNode(string name, ChangeState state) : base(name, state) { }
 		//methods
-		public override Node MergeToResult(Node other) {
-			other.State = ChangeState.SAME;
-			return other;
-		}
-		public override bool ContainsState(ChangeState state) {
-			return State.Equals(state);
-		}
-		/// <summary>
-		/// If the other Node is equal to this name, the Node found is this Node
-		/// otherwise, it's not found
-		/// </summary>
-		/// <returns></returns>
-		public override Node FindNode(Node other) {
-			return other.SharesName(this) ? this : null;
-		}
-		public override void Insert(Node other) {
-			
-		}
 		public override void MarkAs(ChangeState state) {
 			State = state;
 		}
@@ -72,71 +66,40 @@ namespace CompareDirs {
 		public override int CompareTo(LeafNode other) {
 			return Name.CompareTo(other.Name);
 		}
-		public override string Print(string tabs) {
-			return tabs + Name + " " + State;
+		public override string Print(string tabs, bool showState) {
+			return PrintTitle(tabs, showState);
 		}
 
 		public override bool EqualToNode(Node other) {
-			return SharesName(other);
+			return SharesName(other) && State.Equals(other.State);
+		}
+
+		public override Node MergeTrees(Node second) {
+			return CreateCopy(ChangeState.SAME);
+		}
+
+		public override Node CreateCopy(ChangeState state) {
+			return new LeafNode(Name, state);
 		}
 	}
+	/// <summary>
+	/// A BranchNode consists of a Node that has Children
+	/// Invariant: Children are sorted alphabetically by Name
+	/// BranchNodes always come before LeafNodes
+	/// </summary>
 	public class BranchNode : Node {
-		//members
-		private int iter;
 		//properties
 		public List<Node> Children { get; private set; }
 		public Node this[int i] { get { return Children[i]; } }
 		//constructors
-		public BranchNode(string name, ChangeState state) : base(name, state) {
-			Children = new List<Node>();
-			iter = 0;
+		public BranchNode(string name, ChangeState state, List<Node> children) : base(name, state) {
+			Children = children;
 		}
-		public BranchNode(string name, params Node[] nodes) : this(name, ChangeState.SAME) {
+		public BranchNode(string name, ChangeState state, params Node[] nodes) : this(name, state, new List<Node>()) {
 			Children.AddRange(nodes);
 		}
 		public void Append(Node n) {
 			Children.Add(n);
-		}
-		public override bool ContainsState(ChangeState state) {
-			foreach(Node n in Children) {
-				if (n.ContainsState(state))
-					return true;
-			}
-			return false;
-		}
-
-		public override Node FindNode(Node other) {
-			while(iter < Children.Count) {
-				int comp = Children[iter].CompareTo(other);
-                if (comp == 0) {
-					return Children[iter++];
-				}
-				else if(comp < 0) {
-					return null;
-				}
-				else {
-					iter++;
-				}
-			}
-			return null;
-		}
-
-		public override Node MergeToResult(Node other) {
-			foreach(Node c in Children) {
-				Node otherMatch = other.FindNode(c);
-				if (otherMatch != null) {
-					other.State = ChangeState.SAME;
-					c.MergeToResult(otherMatch);
-				}
-				else {
-					other.Insert(c);
-				}
-			}
-			return other;
-		}
-		public override void Insert(Node other) {
-			other.MarkAs(ChangeState.DELETED);
-			Children.Insert(iter++, other);
 		}
 		public override void MarkAs(ChangeState state) {
 			State = state;
@@ -152,16 +115,17 @@ namespace CompareDirs {
 		public override int CompareTo(BranchNode other) {
 			return Name.CompareTo(other.Name);
 		}
-		public override string Print(string tabs) {
-			string soFar = tabs + Name + " " + State;
-			tabs += "\t";
+		public override string Print(string tabs, bool showState) {
+			string soFar = PrintTitle(tabs, showState);
+			tabs += showState ? "\t" : "  ";
 			foreach (Node c in Children) {
-				soFar += "\n" + c.Print(tabs);
+				soFar += "\n" + c.Print(tabs, showState);
 			}
 			return soFar;
 		}
 
 		public override bool EqualToNode(Node other) {
+			if (!State.Equals(other.State)) return false;
 			if(other is BranchNode) {
 				BranchNode bOther = other as BranchNode;
 				if (bOther.Children.Count != Children.Count) return false;
@@ -175,6 +139,50 @@ namespace CompareDirs {
 				return other.SharesName(this);
             }
 			return true;
+		}
+		public override Node MergeTrees(Node second) {
+			BranchNode bSecond = second as BranchNode;
+			List<Node> resultChildren = new List<Node>();
+			ChangeState overallState = ChangeState.SAME;
+			var firstIter = Children.GetEnumerator();
+			var secondIter = bSecond.Children.GetEnumerator();
+			bool firstHasNext = firstIter.MoveNext();
+			bool secondHasNext = secondIter.MoveNext();
+			while(firstHasNext && secondHasNext) {
+				if (firstIter.Current.SharesName(secondIter.Current)) {
+					resultChildren.Add(firstIter.Current.MergeTrees(secondIter.Current));
+					firstHasNext = firstIter.MoveNext();
+					secondHasNext = secondIter.MoveNext();
+				}
+				else if(firstIter.Current.CompareTo(secondIter.Current) < 0) {
+					resultChildren.Add(firstIter.Current.CreateCopy(ChangeState.DELETED));
+					firstHasNext = firstIter.MoveNext();
+				}
+				else {
+					resultChildren.Add(secondIter.Current.CreateCopy(ChangeState.ADDED));
+					secondHasNext = secondIter.MoveNext();
+				}
+				overallState = MeshStates(overallState, resultChildren[resultChildren.Count - 1].State);
+			}
+			while (firstHasNext) {
+				resultChildren.Add(firstIter.Current.CreateCopy(ChangeState.DELETED));
+				firstHasNext = firstIter.MoveNext();
+				overallState = MeshStates(overallState, resultChildren[resultChildren.Count - 1].State);
+			}
+			while (secondHasNext) {
+				resultChildren.Add(secondIter.Current.CreateCopy(ChangeState.ADDED));
+				secondHasNext = secondIter.MoveNext();
+				overallState = MeshStates(overallState, resultChildren[resultChildren.Count - 1].State);
+			}
+			return new BranchNode(Name, overallState, resultChildren);
+		}
+
+		public override Node CreateCopy(ChangeState state) {
+			List<Node> copyChildren = new List<Node>();
+			foreach(Node c in Children) {
+				copyChildren.Add(c.CreateCopy(state));
+			}
+			return new BranchNode(Name, state);
 		}
 	}
 

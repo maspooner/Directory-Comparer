@@ -4,6 +4,7 @@
 obj/
 TestResults/
 UnitTests/bin/
+bin/
 
 # =========================
 # Operating System Files

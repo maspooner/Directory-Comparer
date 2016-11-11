@@ -7,26 +7,114 @@ namespace UnitTests {
 	[TestClass]
 	public class UnitTest1 {
 		private BranchNode CreateNode1() {
-			return new BranchNode("folder",
-									new BranchNode("sub1", new LeafNode("ssuubb1", ChangeState.ADDED),
-														   new LeafNode("ssuubb2", ChangeState.DELETED)),
-									new LeafNode("folder2", ChangeState.SAME));
+			return new BranchNode("1.", ChangeState.SAME,
+									new BranchNode("A.", ChangeState.SAME,
+														new LeafNode("a1", ChangeState.ADDED),
+														new LeafNode("a2", ChangeState.DELETED)),
+									new BranchNode("B.", ChangeState.SAME));
 		}
 		private BranchNode CreateNode2() {
-			return new BranchNode("folder",
-									new BranchNode("sub1", new LeafNode("ssuubb1", ChangeState.MIXED),
-														   new LeafNode("ssuubb3", ChangeState.SAME)),
-                                    new BranchNode("sub2", new LeafNode("ssuubb1", ChangeState.ADDED)),
-									new LeafNode("folder4", ChangeState.SAME));
+			return new BranchNode("1.", ChangeState.ADDED,
+									new BranchNode("A.", ChangeState.DELETED,
+														new LeafNode("a1", ChangeState.ADDED),
+														new LeafNode("a2", ChangeState.DELETED)),
+									new BranchNode("B.", ChangeState.SAME),
+									new LeafNode("C.", ChangeState.MIXED));
+		}
+		private BranchNode CreateNode3() {
+			return new BranchNode("1.", ChangeState.MIXED,
+									new BranchNode("A.", ChangeState.DELETED,
+															new LeafNode("a1", ChangeState.MIXED),
+															new LeafNode("a3", ChangeState.SAME)),
+									new BranchNode("B.", ChangeState.DELETED,
+														 new LeafNode("b1", ChangeState.ADDED)),
+									new BranchNode("D.", ChangeState.SAME),
+                                    new LeafNode("C.", ChangeState.SAME));
+		}
+		private BranchNode CreateResultNode1_3() {
+			return new BranchNode("1.", ChangeState.MIXED,
+									new BranchNode("A.", ChangeState.MIXED,
+															new LeafNode("a1", ChangeState.SAME),
+															new LeafNode("a2", ChangeState.DELETED),
+															new LeafNode("a3", ChangeState.ADDED)),
+									new BranchNode("B.", ChangeState.ADDED,
+															new LeafNode("b1", ChangeState.ADDED)),
+									new BranchNode("D.", ChangeState.ADDED),
+									new LeafNode("C.", ChangeState.ADDED));
+		}
+		private void AssertNodesEqual(Node expected, Node actual) {
+			Trace.WriteLine("Expected: ");
+			Trace.WriteLine(expected.ToString());
+			Trace.WriteLine("Actual: ");
+			Trace.WriteLine(actual.ToString());
+			Assert.IsTrue(expected.EqualToNode(actual));
 		}
 		[TestMethod]
-		public void CompareSameTreeYieldsSameTree() {
-			BranchNode node1 = CreateNode1(), node2 = CreateNode1();
-			node1.MarkAs(ChangeState.SAME);
-			node2.MarkAs(ChangeState.ADDED);
-			Trace.WriteLine(node1.ToString());
-			Trace.WriteLine(node2.ToString());
-			Assert.IsTrue(node1.EqualToNode(node1.MergeToResult(node2)));
+		public void EqualToNode_EqualNodes() {
+			Assert.IsTrue(CreateNode1().EqualToNode(CreateNode1()));
+		}
+		[TestMethod]
+		public void EqualToNode_NotEqualNodes() {
+			Assert.IsFalse(CreateNode1().EqualToNode(CreateNode2()));
+			Assert.IsFalse(CreateNode1().EqualToNode(CreateNode3()));
+		}
+		private void AssertMergeTrees(BranchNode expected, BranchNode first, BranchNode second) {
+			Trace.WriteLine("First:");
+			Trace.WriteLine(first.ToString(false));
+			Trace.WriteLine("Second:");
+			Trace.WriteLine(second.ToString(false));
+			AssertNodesEqual(expected, first.MergeTrees(second));
+		}
+		[TestMethod]
+		public void MergeTrees_MergeWithSelfYieldsSelf() {
+			BranchNode first = CreateNode1(), second = CreateNode1();
+			first.MarkAs(ChangeState.SAME);
+			AssertMergeTrees(first, first, second);
+		}
+		[TestMethod]
+		public void MergeTrees_MergeAddsTopLevelLeaf() {
+			BranchNode expected = CreateNode2();
+			expected.MarkAs(ChangeState.SAME);
+			expected.Children[expected.Children.Count - 1].MarkAs(ChangeState.ADDED);
+
+			AssertMergeTrees(expected, CreateNode1(), CreateNode2());
+		}
+		[TestMethod]
+		public void MergeTrees_MergeRemovesTopLevelLeaf() {
+			BranchNode expected = CreateNode2();
+			expected.MarkAs(ChangeState.SAME);
+			expected.Children[expected.Children.Count - 1].MarkAs(ChangeState.DELETED);
+
+			AssertMergeTrees(expected, CreateNode2(), CreateNode1());
+		}
+		[TestMethod]
+		public void MergeTrees_ComplexTrees() {
+			AssertMergeTrees(CreateResultNode1_3(), CreateNode1(), CreateNode3());
+		}
+		[TestMethod]
+		public void MeshStates_CommonInsAndOuts() {
+			Node n = CreateNode1();
+			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.DELETED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.DELETED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.SAME, ChangeState.DELETED));
+
+			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.ADDED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.ADDED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.SAME, ChangeState.ADDED));
+
+			Assert.AreEqual(ChangeState.SAME, n.MeshStates(ChangeState.SAME, ChangeState.SAME));
+
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.DELETED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.ADDED, ChangeState.DELETED));
+
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.MIXED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.SAME));
+
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.SAME));
 		}
 	}
 }
