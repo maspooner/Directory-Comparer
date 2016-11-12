@@ -75,6 +75,7 @@ namespace UnitTests {
 		public void MergeTrees_MergeAddsTopLevelLeaf() {
 			BranchNode expected = CreateNode2();
 			expected.MarkAs(ChangeState.SAME);
+			expected.State = ChangeState.ADDED;
 			expected.Children[expected.Children.Count - 1].MarkAs(ChangeState.ADDED);
 
 			AssertMergeTrees(expected, CreateNode1(), CreateNode2());
@@ -83,6 +84,7 @@ namespace UnitTests {
 		public void MergeTrees_MergeRemovesTopLevelLeaf() {
 			BranchNode expected = CreateNode2();
 			expected.MarkAs(ChangeState.SAME);
+			expected.State = ChangeState.DELETED;
 			expected.Children[expected.Children.Count - 1].MarkAs(ChangeState.DELETED);
 
 			AssertMergeTrees(expected, CreateNode2(), CreateNode1());
@@ -93,28 +95,28 @@ namespace UnitTests {
 		}
 		[TestMethod]
 		public void MeshStates_CommonInsAndOuts() {
-			Node n = CreateNode1();
-			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.DELETED, ChangeState.SAME));
-			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.DELETED, ChangeState.DELETED));
-			Assert.AreEqual(ChangeState.DELETED, n.MeshStates(ChangeState.SAME, ChangeState.DELETED));
+			BranchBuilder b = new BranchBuilder(CreateNode1().Children, CreateNode1().Children);
+			Assert.AreEqual(ChangeState.DELETED, b.MeshStates(ChangeState.DELETED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.DELETED, b.MeshStates(ChangeState.DELETED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.DELETED, b.MeshStates(ChangeState.SAME, ChangeState.DELETED));
 
-			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.ADDED, ChangeState.SAME));
-			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.ADDED, ChangeState.ADDED));
-			Assert.AreEqual(ChangeState.ADDED, n.MeshStates(ChangeState.SAME, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.ADDED, b.MeshStates(ChangeState.ADDED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.ADDED, b.MeshStates(ChangeState.ADDED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.ADDED, b.MeshStates(ChangeState.SAME, ChangeState.ADDED));
 
-			Assert.AreEqual(ChangeState.SAME, n.MeshStates(ChangeState.SAME, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.SAME, b.MeshStates(ChangeState.SAME, ChangeState.SAME));
 
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.DELETED, ChangeState.ADDED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.ADDED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.DELETED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.ADDED, ChangeState.DELETED));
 
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.MIXED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.MIXED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.SAME));
 
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
-			Assert.AreEqual(ChangeState.MIXED, n.MeshStates(ChangeState.MIXED, ChangeState.SAME));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.ADDED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.DELETED));
+			Assert.AreEqual(ChangeState.MIXED, b.MeshStates(ChangeState.MIXED, ChangeState.SAME));
 		}
 	}
 }

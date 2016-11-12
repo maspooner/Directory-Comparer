@@ -17,9 +17,6 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace CompareDirs { 
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
 	public partial class MainWindow : Window {
 		//members
 		private string path1, path2;
@@ -27,11 +24,26 @@ namespace CompareDirs {
 		//constructors
 		public MainWindow() {
 			InitializeComponent();
+			fileSelector1.Items.Add(Properties.Resources.SelectBaseMessage);
+			fileSelector2.Items.Add(Properties.Resources.SelectOtherMessage);
 			path1 = path2 = null;
 			chooserDialog = new FolderBrowserDialog();
 			chooserDialog.ShowNewFolderButton = false;
 		}
 		//methods
+		//event handlers
+		private void fileBrowseButton1_Click(object sender, RoutedEventArgs e) {
+
+		}
+
+		private void fileBrowseButton2_Click(object sender, RoutedEventArgs e) {
+
+		}
+
+		private void compareGoButton_Click(object sender, RoutedEventArgs e) {
+
+		}
+
 		public void OpenChooser1Click(object sender, RoutedEventArgs e) {
 			string s = OpenDialog();
 			path1 = s != null ? s : path1;
@@ -87,6 +99,9 @@ namespace CompareDirs {
 			tvi.Header = p;
 			return tvi;
 		}
+
+		
+
 		public void CompareButtonClick(object sender, RoutedEventArgs e) {
 			try {
 				if (path1 != null && path2 != null) {

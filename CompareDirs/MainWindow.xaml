@@ -6,7 +6,23 @@
         xmlns:local="clr-namespace:CompareDirs"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <DockPanel>
+    <DockPanel Name="mainPanel">
+        <Grid Name="bottomGrid" DockPanel.Dock="Bottom">
+            <ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                <TreeView Name="baseTreeView"/>
+				<TreeView Name="otherTreeView"/>
+				<TreeView Name="diffTreeView"/>
+            </ScrollViewer>
+        </Grid>
+        <DockPanel Name="fileSelectorPanel" DockPanel.Dock="Top">
+			<ComboBox Name="fileSelector1"/>
+			<Button Name="fileBrowseButton1" Click="fileBrowseButton1_Click"/>
+            <ComboBox Name="fileSelector2"/>
+            <Button Name="fileBrowseButton2" Click="fileBrowseButton2_Click"/>
+			<Button Name="compareGoButton" Click="compareGoButton_Click"/>
+        </DockPanel>
+	</DockPanel>
+    <!--<DockPanel>
         <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -50,5 +66,5 @@
 				</TreeView>
 			</ScrollViewer>
 		</Grid>
-    </DockPanel>
+    </DockPanel> -->
 </Window>
