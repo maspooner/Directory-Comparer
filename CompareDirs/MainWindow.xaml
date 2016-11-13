@@ -5,22 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CompareDirs"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="CompareDirs" Height="350" Width="525">
     <DockPanel Name="mainPanel">
-        <Grid Name="bottomGrid" DockPanel.Dock="Bottom">
-            <ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
-                <TreeView Name="baseTreeView"/>
-				<TreeView Name="otherTreeView"/>
-				<TreeView Name="diffTreeView"/>
-            </ScrollViewer>
-        </Grid>
-        <DockPanel Name="fileSelectorPanel" DockPanel.Dock="Top">
+		<DockPanel Name="fileSelectorPanel" DockPanel.Dock="Top">
 			<ComboBox Name="fileSelector1"/>
 			<Button Name="fileBrowseButton1" Click="fileBrowseButton1_Click"/>
-            <ComboBox Name="fileSelector2"/>
-            <Button Name="fileBrowseButton2" Click="fileBrowseButton2_Click"/>
-			<Button Name="compareGoButton" Click="compareGoButton_Click"/>
-        </DockPanel>
+			<ComboBox Name="fileSelector2"/>
+			<Button Name="fileBrowseButton2" Click="fileBrowseButton2_Click"/>
+			<Button Name="compareGoButton" Click="compareGoButton_Click" Content="Compare"/>
+		</DockPanel>
+		<Grid Name="bottomGrid" DockPanel.Dock="Bottom">
+			<ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+				<TreeView Name="baseTreeView"/>
+			</ScrollViewer>
+			<GridSplitter Grid.Column="1"/>
+			<ScrollViewer  Grid.Column="2" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+				<TreeView Name="otherTreeView"/>
+			</ScrollViewer>
+			<GridSplitter Grid.Column="3"/>
+			<ScrollViewer  Grid.Column="4" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+				<TreeView Name="diffTreeView"/>
+			</ScrollViewer>
+		</Grid>
 	</DockPanel>
     <!--<DockPanel>
         <Grid DockPanel.Dock="Top">

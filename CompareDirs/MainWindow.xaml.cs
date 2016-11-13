@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,32 +19,67 @@ using System.Windows.Shapes;
 
 namespace CompareDirs { 
 	public partial class MainWindow : Window {
+		//constants
+		private const int MAX_REMEMBERED_PATHS = 10;
 		//members
-		private string path1, path2;
+		//private string path1, path2;
+		private Properties.Settings settings;
 		private FolderBrowserDialog chooserDialog;
 		//constructors
 		public MainWindow() {
 			InitializeComponent();
+			settings = Properties.Settings.Default;
 			fileSelector1.Items.Add(Properties.Resources.SelectBaseMessage);
 			fileSelector2.Items.Add(Properties.Resources.SelectOtherMessage);
-			path1 = path2 = null;
+			fileSelector1.SelectedIndex = 0;
+			fileSelector2.SelectedIndex = 0;
+			//path1 = path2 = null;
 			chooserDialog = new FolderBrowserDialog();
 			chooserDialog.ShowNewFolderButton = false;
+			Console.WriteLine(settings.visitedQueue1 == null);
+			Console.WriteLine(settings.visitedQueue2 == null);
+			if (settings.visitedQueue1 == null) {
+				settings.visitedQueue1 = new StringCollection();
+			}
+			if(settings.visitedQueue2 == null) {
+				settings.visitedQueue2 = new StringCollection();
+			}
 		}
 		//methods
 		//event handlers
 		private void fileBrowseButton1_Click(object sender, RoutedEventArgs e) {
-
+			string path = OpenDialog();
+			if(path != null) {
+				PushTo(settings.visitedQueue1, path);
+			}
 		}
 
 		private void fileBrowseButton2_Click(object sender, RoutedEventArgs e) {
-
+			string path = OpenDialog();
+			if (path != null) {
+				PushTo(settings.visitedQueue2, path);
+			}
 		}
-
 		private void compareGoButton_Click(object sender, RoutedEventArgs e) {
 
 		}
 
+
+
+		private void PushTo(StringCollection col, string path) {
+			while (col.Count >= MAX_REMEMBERED_PATHS)
+				col.RemoveAt(col.Count - 1);
+			col.Insert(0, path);
+			settings.Save();
+		}
+		public void UpdateComboBox(ComboBox cb, StringCollection queue, string defValue) {
+
+		}
+		public string OpenDialog() {
+			DialogResult res = chooserDialog.ShowDialog();
+			return res.Equals(System.Windows.Forms.DialogResult.OK) ? chooserDialog.SelectedPath : null;
+		}
+		/*
 		public void OpenChooser1Click(object sender, RoutedEventArgs e) {
 			string s = OpenDialog();
 			path1 = s != null ? s : path1;
@@ -54,10 +90,6 @@ namespace CompareDirs {
 			path2 = s != null ? s : path2;
 			dirLabel2.Content = path2 == null ? "Select the second directory to compare ->" : path2;
         }
-		public string OpenDialog() {
-			DialogResult res = chooserDialog.ShowDialog();
-			return res.Equals(System.Windows.Forms.DialogResult.OK) ? chooserDialog.SelectedPath : null;
-		}
 		private void ConvertToVisualTree(System.Windows.Controls.TreeView visTree, TreeRoot root) {
 			visTree.Items.Clear();
 			TreeViewItem visRoot = CreateTreeViewItem(root.Change, root.Name);
@@ -123,5 +155,6 @@ namespace CompareDirs {
 				System.Windows.MessageBox.Show(x.Message, "Error");
 			}
 		}
+		*/
 	}
 }

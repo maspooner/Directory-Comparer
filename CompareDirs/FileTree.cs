@@ -6,7 +6,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CompareDirs {
+	/// <summary>
+	/// Models a Difference between <seealso cref="Node"/> types
+	/// </summary>
 	public enum ChangeState { SAME, ADDED, DELETED, MIXED }
+	/// <summary>
+	/// Models a Node in a file tree
+	/// </summary>
 	public abstract class Node {
 		//properties
 		public string Name { get; private set; }
@@ -21,10 +27,13 @@ namespace CompareDirs {
 		/// Do this Node and another share the same name and type?
 		/// </summary>
 		/// <param name="other">The node to compare to</param>
-		/// <returns></returns>
 		public bool SharesName(Node other) {
 			return Name.Equals(other.Name) && other.GetType().Equals(this.GetType());
 		}
+		/// <summary>
+		/// Compares this Node to another
+		/// </summary>
+		/// <param name="n">the <seealso cref="Node"/> to compare to</param>
 		public int CompareTo(Node n) {
 			return (n is BranchNode) ? CompareTo(n as BranchNode) : CompareTo(n as LeafNode);
 		}
