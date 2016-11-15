@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace UnitTests {
 	[TestClass]
-	public class UnitTest1 {
+	public class TreeTests {
 		private BranchNode CreateNode1() {
 			return new BranchNode("1.", ChangeState.SAME,
 									new BranchNode("A.", ChangeState.SAME,

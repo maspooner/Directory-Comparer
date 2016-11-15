@@ -5,24 +5,39 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CompareDirs"
         mc:Ignorable="d"
-        Title="CompareDirs" Height="350" Width="525">
+        Title="CompareDirs" Height="450" Width="700"
+		MinHeight="300" MinWidth="400">
     <DockPanel Name="mainPanel">
-		<DockPanel Name="fileSelectorPanel" DockPanel.Dock="Top">
-			<ComboBox Name="fileSelector1"/>
-			<Button Name="fileBrowseButton1" Click="fileBrowseButton1_Click"/>
-			<ComboBox Name="fileSelector2"/>
-			<Button Name="fileBrowseButton2" Click="fileBrowseButton2_Click"/>
-			<Button Name="compareGoButton" Click="compareGoButton_Click" Content="Compare"/>
-		</DockPanel>
+		<Grid Name="fileSelectorPanel" DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+				<ColumnDefinition Width="3*"/>
+				<ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Name="fileSelector1" Grid.Column="0"/>
+            <Button Name="fileBrowseButton1" Grid.Column="1" Click="fileBrowseButton1_Click" Content="Pick.."/>
+            <ComboBox Name="fileSelector2" Grid.Column="2"/>
+            <Button Name="fileBrowseButton2" Grid.Column="3" Click="fileBrowseButton2_Click" Content="Pick.."/>
+            <Button Name="compareGoButton" Grid.Column="4" Click="compareGoButton_Click" Content="Compare"/>
+		</Grid>
 		<Grid Name="bottomGrid" DockPanel.Dock="Bottom">
-			<ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <ScrollViewer  Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
 				<TreeView Name="baseTreeView"/>
 			</ScrollViewer>
-			<GridSplitter Grid.Column="1"/>
+			<GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
 			<ScrollViewer  Grid.Column="2" Grid.Row="0" VerticalScrollBarVisibility="Auto">
 				<TreeView Name="otherTreeView"/>
 			</ScrollViewer>
-			<GridSplitter Grid.Column="3"/>
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch"/>
 			<ScrollViewer  Grid.Column="4" Grid.Row="0" VerticalScrollBarVisibility="Auto">
 				<TreeView Name="diffTreeView"/>
 			</ScrollViewer>
